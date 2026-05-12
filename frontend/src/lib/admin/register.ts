@@ -20,13 +20,13 @@ export const verifyCode = async (code: string) => {
   }
 };
 
-export const registerAdmin = async (token: string, data: any) => {
+export const registerAdmin = async (data: any) => {
   try {
     const res = await fetch(`${API}/admin/register`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

@@ -4,10 +4,14 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { AdminService } from './admin/admin.service';
-import { AdminController } from './admin/admin.controller';
 import { AdminModule } from './admin/admin.module';
 import { ConfigModule } from '@nestjs/config';
+import { MateriModule } from './admin/materi/materi.module';
+import { FolderModule } from './admin/materi/folder/folder.module';
+import { KuisModule } from './admin/kuis/kuis.module';
+import { MobileService } from './mobile/mobile.service';
+import { MobileController } from './mobile/mobile.controller';
+import { MobileModule } from './mobile/mobile.module';
 
 @Module({
   imports: [
@@ -15,8 +19,12 @@ import { ConfigModule } from '@nestjs/config';
     PrismaModule,
     AuthModule,
     AdminModule,
+    MateriModule,
+    FolderModule,
+    KuisModule,
+    MobileModule,
   ],
-  controllers: [AppController, AdminController],
-  providers: [AppService, PrismaService, AdminService],
+  controllers: [AppController, MobileController],
+  providers: [AppService, PrismaService, MobileService],
 })
 export class AppModule {}

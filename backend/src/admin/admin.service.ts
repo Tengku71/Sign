@@ -1,4 +1,3 @@
-// admin-backend/src/admin/admin.service.ts
 import {
   Injectable,
   ConflictException,
@@ -8,17 +7,12 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
-import { LoginAdminDto } from './dto/login-admin.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class AdminService {
-  constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async register(dto: RegisterAdminDto) {
     const exists = await this.prisma.admin.findUnique({
@@ -35,60 +29,24 @@ export class AdminService {
     return result;
   }
 
-  async login(dto: LoginAdminDto) {
-    const admin = await this.prisma.admin.findUnique({
-      where: { email: dto.email },
-    });
+  async validateCredentials(email: string, password: string) {
+    const admin = await this.prisma.admin.findUnique({ where: { email } });
+    if (!admin) throw new UnauthorizedException('Invalid email or password');
 
-    if (!admin) {
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid)
       throw new UnauthorizedException('Invalid email or password');
-    }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, admin.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    const payload = { sub: admin.id, email: admin.email };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
-  }
-
-  async getProfile(id: number) {
-    const admin = await this.prisma.admin.findUnique({
-      where: { id },
-    });
-
-    if (!admin) {
-      throw new UnauthorizedException('Admin not found');
-    }
-
-    const { password, ...result } = admin;
+    const { password: _, ...result } = admin;
     return result;
   }
 
-  validateToken(token: string) {
-    try {
-      const payload = this.jwtService.verify(token);
-      return payload;
-    } catch {
-      throw new UnauthorizedException('Invalid or expired token');
-    }
-  }
+  async getProfile(id: number) {
+    const admin = await this.prisma.admin.findUnique({ where: { id } });
+    if (!admin) throw new UnauthorizedException('Admin not found');
 
-  async verifyCode(code: string) {
-    // console.log(
-    //   'Received code:',
-    //   code,
-    //   '| Expected code:',
-    //   process.env.VALIDATION_CODE,
-    // );
-    if (code !== process.env.VALIDATION_CODE) {
-      throw new UnauthorizedException('Invalid validation code');
-    }
-    const payload = { canRegister: true };
-    return { access_token: this.jwtService.sign(payload) };
+    const { password, ...result } = admin;
+    return result;
   }
 
   async createUser(dto: CreateUserDto) {
@@ -122,11 +80,10 @@ export class AdminService {
         isVerified: true,
         createdAt: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
+
   async getUserById(id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
@@ -147,7 +104,6 @@ export class AdminService {
     }
 
     const updateData: any = { ...dto };
-
     if (dto.password) {
       updateData.password = await bcrypt.hash(dto.password, 10);
     } else {

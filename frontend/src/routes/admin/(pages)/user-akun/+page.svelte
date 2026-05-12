@@ -1,8 +1,10 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { UserRoundPen, UserRoundPlus, UserRoundX } from "@lucide/svelte";
-  import { authToken, refreshUsers, usersStore } from "$lib/stores";
+  import { usersStore } from "$lib/stores";
   import type { User } from "$lib/types";
   import { deleteUser } from "$lib/admin/deleteUser";
+  import { getAllUsers } from "$lib/admin/getAdmin";
 
   let users = $derived($usersStore);
   let showDeleteModal = $state(false);
@@ -21,17 +23,13 @@
     deleting = true;
     deleteError = "";
 
-    let currentToken: string = "";
-    const unsub = authToken.subscribe((t) => (currentToken = t ?? ""));
-    unsub();
-
-    const res = await deleteUser(currentToken, userToDelete.id);
+    const res = await deleteUser(userToDelete.id);
 
     if (res.success) {
-      usersStore.update((list) => list.filter((u) => u.id !== userToDelete!.id));
+      const usersRes = await getAllUsers();
+      if (usersRes.success) usersStore.set(usersRes.data);
       showDeleteModal = false;
       userToDelete = null;
-      refreshUsers.update((n) => n + 1);
     } else {
       deleteError = res.message || "Failed to delete";
     }

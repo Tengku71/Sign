@@ -1,15 +1,12 @@
-import { authToken } from "$lib/stores";
 import { API } from "$lib/types";
-import { get } from "svelte/store";
 
-export const createUser = async (token: string, data: { email: string; name: string; password: string; isVerified: boolean }) => {
+export const createUser = async (data: { email: string; name: string; password: string; isVerified: boolean }) => {
   try {
-    const token = get(authToken);
     const res = await fetch(`${API}/admin/users`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

@@ -1,9 +1,9 @@
 import { API } from "$lib/types";
 
-export const getUserById = async (token: string, id: number) => {
+export const getUserById = async (id: number) => {
   try {
     const res = await fetch(`${API}/admin/users/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
     });
     const data = await res.json();
     console.log(data);

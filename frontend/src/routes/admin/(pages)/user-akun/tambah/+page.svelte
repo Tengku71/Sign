@@ -1,7 +1,9 @@
 <script lang="ts">
   import { ArrowLeft } from "@lucide/svelte";
-  import { getContext } from "svelte";
   import { createUser } from "$lib/admin/addUser";
+  import { goto } from "$app/navigation";
+  import { getAllUsers } from "$lib/admin/getAdmin";
+  import { usersStore } from "$lib/stores";
 
   let token = $state("");
 
@@ -31,13 +33,12 @@
     if (!validate()) return;
     loading = true;
 
-    const res = await createUser(token, { email, name, password, isVerified });
+    const res = await createUser({ email, name, password, isVerified });
     if (res.success) {
       successMsg = `User "${name}" created successfully!`;
-      email = "";
-      name = "";
-      password = "";
-      isVerified = true;
+      const usersRes = await getAllUsers();
+      if (usersRes.success) usersStore.set(usersRes.data);
+      setTimeout(() => goto("/admin/user-akun"), 1500);
     } else {
       error = res.message || "Failed to create user";
     }

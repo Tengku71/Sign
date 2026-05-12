@@ -1,12 +1,12 @@
 import { API } from "$lib/types";
 
-export const updateUser = async (token: string, id: number, data: any) => {
+export const updateUser = async (id: number, data: any) => {
   try {
     const res = await fetch(`${API}/admin/users/${id}`, {
       method: "PATCH",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

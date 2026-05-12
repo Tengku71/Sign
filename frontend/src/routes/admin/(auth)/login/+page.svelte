@@ -1,9 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { loginAdmin } from "$lib/admin/login";
-  import { authToken } from "$lib/stores";
-
-  import type { User } from "$lib/types";
 
   let email = $state("");
   let password = $state("");
@@ -27,8 +24,7 @@
     loading = true;
 
     const res = await loginAdmin({ email, password });
-    if (res.success && res.access_token) {
-      authToken.set(res.access_token);
+    if (res.success) {
       goto("/admin/dashboard");
     } else {
       error = res.message || "Login failed";

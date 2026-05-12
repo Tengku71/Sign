@@ -1,14 +1,10 @@
-import { authToken } from "$lib/stores";
 import { API } from "$lib/types";
-import { get } from "svelte/store";
 
-export const getAdminProfile = async (token: string) => {
+export const getAdminProfile = async () => {
   try {
     const res = await fetch(`${API}/admin/me`, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     const responseData = await res.json();
@@ -23,12 +19,11 @@ export const getAdminProfile = async (token: string) => {
   }
 };
 
-export const getAllUsers = async (token: string) => {
+export const getAllUsers = async () => {
   try {
-    const token = get(authToken);
     const res = await fetch(`${API}/admin/users`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
     });
     const responseData = await res.json();
     if (!res.ok) return { success: false, message: "Failed to fetch users" };

@@ -1,12 +1,11 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { onMount } from "svelte";
-  import { authToken, refreshUsers, usersStore } from "$lib/stores";
+  import { usersStore } from "$lib/stores";
   import { goto } from "$app/navigation";
   import { getUserById } from "$lib/admin/getUser";
   import { updateUser } from "$lib/admin/updateUser";
 
-  let token = $state("");
   let loading = $state(true);
   let saving = $state(false);
   let error = $state("");
@@ -21,28 +20,19 @@
   let scores = $state(0);
   let isVerified = $state(false);
 
-  onMount(() => {
-    const unsub = authToken.subscribe(async (t) => {
-      if (!t) {
-        console.log("token", t);
-        goto("/admin/login");
-        return;
-      }
-      token = t;
-
-      const res = await getUserById(t, userId);
-      if (res.success && res.data) {
-        email = res.data.email;
-        name = res.data.name;
-        level = res.data.level;
-        scores = res.data.scores;
-        isVerified = res.data.isVerified;
-      } else {
-        error = "Failed to load user.";
-      }
-      loading = false;
-    });
-    return unsub;
+  onMount(async () => {
+    const res = await getUserById(userId);
+    if (res.success && res.data) {
+      email = res.data.email;
+      name = res.data.name;
+      level = res.data.level;
+      scores = res.data.scores;
+      isVerified = res.data.isVerified;
+    } else {
+      error = "Failed to load user.";
+      goto("/admin/login");
+    }
+    loading = false;
   });
 
   async function handleUpdate(e: Event) {
@@ -50,12 +40,13 @@
     error = "";
     successMsg = "";
     saving = true;
-    const payload: any = { email, name, level: level, scores, isVerified };
+
+    const payload: any = { email, name, level, scores, isVerified };
     if (password.length >= 8) {
       payload.password = password;
     }
 
-    const res = await updateUser(token, userId, payload);
+    const res = await updateUser(userId, payload);
     if (res.success) {
       successMsg = "User updated successfully!";
       usersStore.update((users) => users.map((u) => (u.id === userId ? { ...u, ...payload } : u)));
