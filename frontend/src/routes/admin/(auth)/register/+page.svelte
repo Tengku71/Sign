@@ -1,7 +1,5 @@
 <!-- src/routes/admin/register/+page.svelte -->
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { regToken } from "$lib/stores";
   import { registerAdmin, verifyCode } from "$lib/admin/register";
 
   let isVerified = $state(false);
@@ -21,16 +19,6 @@
   let success = $state(false);
   let errs = $state<Record<string, string>>({});
 
-  onMount(() => {
-    const unsub = regToken.subscribe((t) => {
-      if (t) {
-        token = t;
-        isVerified = true;
-      }
-    });
-    return unsub;
-  });
-
   function handleCodeInput(e: Event) {
     const input = e.target as HTMLInputElement;
     code = input.value
@@ -47,7 +35,6 @@
 
     const res = await verifyCode(code);
     if (res.success && res.access_token) {
-      regToken.set(res.access_token);
       token = res.access_token;
       isVerified = true;
     } else {
@@ -87,10 +74,9 @@
     if (!validate()) return;
     regLoading = true;
 
-    const res = await registerAdmin(token, { email, name, password });
+    const res = await registerAdmin({ email, name, password });
     if (res.id) {
       success = true;
-      regToken.set(null);
     } else {
       regError = res.message || "Registration failed";
     }
@@ -162,7 +148,7 @@
         <button
           onclick={() => {
             isVerified = false;
-            regToken.set(null);
+            token = "";
           }}
           class="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-1 transition-colors"
         >

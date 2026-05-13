@@ -205,11 +205,11 @@
         <!-- ADD QUESTION FORM -->
         <form onsubmit={handleAddQuestion} class="bg-black/20 rounded-xl p-4 mb-6 flex gap-3 items-end">
           <div class="flex-1">
-            <label class="text-xs text-slate-400 mb-1 block">Options Array (comma separated)</label>
+            <label for="q-input" class="text-xs text-slate-400 mb-1 block">Options Array (comma separated)</label>
             <textarea bind:value={qInput} placeholder="A, B, C, Home, Car" required rows={2} class="w-full bg-slate-700 text-white placeholder-slate-500 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             ></textarea>
           </div>
-          <button type="submit" disabled={addingQuestion} class="bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-1 disabled:bg-emerald-400 shrink-0 h-[42px]">
+          <button type="submit" disabled={addingQuestion} class="bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-1 disabled:bg-emerald-400 shrink-0 h-10.5">
             <Plus class="w-4 h-4" />
             {addingQuestion ? "..." : "Add"}
           </button>
@@ -229,11 +229,11 @@
                   <!-- INLINE EDITOR -->
                   <div class="space-y-3">
                     <div>
-                      <label class="text-xs text-slate-400 block mb-1">Edit Options</label>
+                      <label for="edit-input" class="text-xs text-slate-400 block mb-1">Edit Options</label>
                       <textarea bind:value={editInput} rows={2} class="w-full bg-slate-700 text-white rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </div>
                     <div>
-                      <label class="text-xs text-slate-400 block mb-1">Move to Mode</label>
+                      <label for="edit-mode" class="text-xs text-slate-400 block mb-1">Move to Mode</label>
                       <select bind:value={editModeId} class="bg-slate-700 text-white rounded-lg px-3 py-2 text-sm outline-none">
                         {#each modes as m}
                           <option value={m.id}>{m.name}</option>

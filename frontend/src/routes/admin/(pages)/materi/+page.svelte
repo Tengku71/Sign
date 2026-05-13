@@ -286,7 +286,7 @@
     <!-- PAGINATION -->
     {#if totalPages > 1}
       <div class="flex justify-center items-center gap-2 mt-6">
-        <button onclick={() => changePage(currentPage - 1)} disabled={currentPage === 1} class="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed">
+        <button aria-label="Previous page" onclick={() => changePage(currentPage - 1)} disabled={currentPage === 1} class="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
         {#each pages as p}
@@ -294,7 +294,7 @@
             {p}
           </button>
         {/each}
-        <button onclick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages} class="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed">
+        <button aria-label="Next page" onclick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages} class="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
@@ -304,8 +304,16 @@
 
 <!-- DELETE VIDEO MODAL -->
 {#if showDeleteModal && itemToDelete}
-  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" role="button" tabindex="0" aria-label="Close modal" onclick={() => (showDeleteModal = false)}>
-    <div class="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-700 shadow-2xl" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    role="dialog"
+    tabindex="-1"
+    aria-modal="true"
+    aria-label="Delete video"
+    onclick={() => (showDeleteModal = false)}
+    onkeydown={(e) => e.key === "Escape" && (showDeleteModal = false)}
+  >
+    <div class="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-700 shadow-2xl" role="document">
       <h3 class="text-xl font-bold text-white mb-2">Delete Video</h3>
       <p class="text-slate-400 mb-6">Delete "<span class="text-white font-semibold">{itemToDelete.label}</span>"?</p>
       <div class="flex justify-end gap-3">
@@ -318,8 +326,16 @@
 
 <!-- DELETE FOLDER MODAL -->
 {#if showDeleteFolderModal && folderToDelete}
-  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" role="button" tabindex="0" aria-label="Close modal" onclick={() => (showDeleteFolderModal = false)}>
-    <div class="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-700 shadow-2xl" onclick={(e) => e.stopPropagation()}>
+  <div
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    role="dialog"
+    tabindex="-1"
+    aria-modal="true"
+    aria-label="Delete folder"
+    onclick={() => (showDeleteFolderModal = false)}
+    onkeydown={(e) => e.key === "Escape" && (showDeleteFolderModal = false)}
+  >
+    <div class="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 border border-slate-700 shadow-2xl" role="document">
       <h3 class="text-xl font-bold text-white mb-2 text-red-400">Delete Folder</h3>
       <p class="text-slate-400 mb-6">Are you sure? This will permanently delete the folder "<span class="text-white font-semibold">{folderToDelete.name}</span>" and <span class="text-red-400 font-semibold">ALL VIDEOS INSIDE IT</span>.</p>
       <div class="flex justify-end gap-3">
