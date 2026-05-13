@@ -20,7 +20,14 @@ async function bootstrap() {
       },
     }),
   );
-  app.enableCors({ origin: 'http://localhost:5173', credentials: true });
+  app.enableCors({
+    origin: [
+      'http://192.168.18.21:3001',
+      'http://localhost:3001',
+      'http://localhost:5173',
+    ],
+    credentials: true,
+  });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
