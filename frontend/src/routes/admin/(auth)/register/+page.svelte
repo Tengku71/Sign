@@ -1,4 +1,3 @@
-<!-- src/routes/admin/register/+page.svelte -->
 <script lang="ts">
   import { registerAdmin, verifyCode } from "$lib/admin/register";
 
@@ -34,8 +33,7 @@
     codeError = "";
 
     const res = await verifyCode(code);
-    if (res.success && res.access_token) {
-      token = res.access_token;
+    if (res.success) {
       isVerified = true;
     } else {
       codeError = res.message || "Invalid code";
