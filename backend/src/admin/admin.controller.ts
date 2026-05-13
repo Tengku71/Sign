@@ -37,7 +37,7 @@ export class AdminController {
     const admin = await this.adminService.register(dto);
     req.session['adminId'] = admin.id;
     delete req.session['canRegister'];
-    return { success: true, data: admin };
+    return { success: true, id: admin.id };
   }
 
   @Post('login')

@@ -4,6 +4,7 @@ export const verifyCode = async (code: string) => {
   try {
     const res = await fetch(`${API}/admin/verify`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     });
