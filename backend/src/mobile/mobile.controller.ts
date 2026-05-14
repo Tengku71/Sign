@@ -3,7 +3,7 @@ import { MobileService } from './mobile.service';
 import { MobileRegisterDto } from './dto/register.dto';
 import { MobileLoginDto } from './dto/login.dto';
 
-@Controller('api/mobile')
+@Controller('mobile')
 export class MobileController {
   constructor(private readonly mobileService: MobileService) {}
 
