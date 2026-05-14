@@ -16,4 +16,4 @@ export type Admin = {
   createdAt: string;
 };
 
-export const API = "http://localhost:3000";
+export const API = import.meta.env.VITE_API_URL ?? "/api";
