@@ -25,6 +25,7 @@ async function bootstrap() {
       'http://192.168.18.21:3001',
       'http://localhost:3001',
       'http://localhost:5173',
+      'https://sign.tengkudimas.my.id',
     ],
     credentials: true,
   });
