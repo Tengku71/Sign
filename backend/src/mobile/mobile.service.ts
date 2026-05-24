@@ -1,4 +1,3 @@
-// src/mobile/mobile.service.ts
 import {
   Injectable,
   ConflictException,
