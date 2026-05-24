@@ -25,7 +25,7 @@ export class MobileService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    const user = await this.prisma.user.create({
+    await this.prisma.user.create({
       data: {
         email: dto.email,
         name: dto.name,
@@ -33,8 +33,16 @@ export class MobileService {
       },
     });
 
-    const { password, ...userData } = user;
-    return { user: userData };
+    // const user = await this.prisma.user.create({
+    //   data: {
+    //     email: dto.email,
+    //     name: dto.name,
+    //     password: hashedPassword,
+    //   },
+    // });
+
+    // const { password, ...userData } = user;
+    return { success: 'User Create' };
   }
 
   async login(dto: MobileLoginDto) {
