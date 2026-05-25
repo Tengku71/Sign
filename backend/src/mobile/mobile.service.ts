@@ -2,12 +2,14 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { MobileRegisterDto } from './dto/register.dto';
 import { MobileLoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-passwords.dto';
 
 @Injectable()
 export class MobileService {
@@ -64,25 +66,38 @@ export class MobileService {
   async updateProfile(userId: number, dto: any, imagePath?: string) {
     const data: any = {};
 
-    if (dto.name) {
-      data.name = dto.name;
-    }
-
-    if (dto.email) {
-      data.email = dto.email;
-    }
-
-    if (dto.password) {
-      data.password = await bcrypt.hash(dto.password, 10);
-    }
-
-    if (imagePath) {
-      data.image = imagePath;
-    }
+    if (dto.name) data.name = dto.name;
+    if (dto.email) data.email = dto.email;
+    if (imagePath) data.image = imagePath;
 
     return this.prisma.user.update({
       where: { id: userId },
       data,
+    });
+  }
+
+  async changePassword(userId: number, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
+
+    if (!isMatch) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const hashed = await bcrypt.hash(dto.newPassword, 10);
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashed,
+      },
     });
   }
 }

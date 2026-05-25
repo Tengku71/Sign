@@ -17,6 +17,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { ChangePasswordDto } from './dto/change-passwords.dto';
 
 @Controller('mobile')
 export class MobileController {
@@ -64,5 +65,10 @@ export class MobileController {
     const imagePath = file ? `/uploads/profile/${file.filename}` : undefined;
 
     return this.mobileService.updateProfile(userId, dto, imagePath);
+  }
+
+  @Post('change-password')
+  async changePassword(@Req() req, @Body() dto: ChangePasswordDto) {
+    return this.mobileService.changePassword(req.user.id, dto);
   }
 }
