@@ -42,6 +42,7 @@ export class MobileController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put('profile')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -49,7 +50,6 @@ export class MobileController {
         destination: './uploads/profile',
         filename: (req, file, cb) => {
           const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-
           cb(null, unique + extname(file.originalname));
         },
       }),
@@ -67,6 +67,7 @@ export class MobileController {
     return this.mobileService.updateProfile(userId, dto, imagePath);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('change-password')
   async changePassword(@Req() req, @Body() dto: ChangePasswordDto) {
     return this.mobileService.changePassword(req.user.id, dto);
