@@ -60,4 +60,29 @@ export class MobileService {
     const { password, ...userData } = user;
     return { access_token, user: userData };
   }
+
+  async updateProfile(userId: number, dto: any, imagePath?: string) {
+    const data: any = {};
+
+    if (dto.name) {
+      data.name = dto.name;
+    }
+
+    if (dto.email) {
+      data.email = dto.email;
+    }
+
+    if (dto.password) {
+      data.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    if (imagePath) {
+      data.image = imagePath;
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+  }
 }

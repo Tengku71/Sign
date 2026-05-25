@@ -18,6 +18,7 @@ model User {
   password String
   scores Int  @default(0)
   level Int   @default(1)
+  image      String?
   isVerified Boolean  @default(false)
   createdAt DateTime @default(now())
 } 

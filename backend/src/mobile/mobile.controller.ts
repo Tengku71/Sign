@@ -1,8 +1,22 @@
-import { Controller, Post, Body, UseGuards, Get, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Req,
+  UseInterceptors,
+  Put,
+  UploadedFile,
+} from '@nestjs/common';
 import { MobileService } from './mobile.service';
 import { MobileRegisterDto } from './dto/register.dto';
 import { MobileLoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('mobile')
 export class MobileController {
@@ -25,5 +39,30 @@ export class MobileController {
       valid: true,
       user: req['user'],
     };
+  }
+
+  @Put('profile')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads/profile',
+        filename: (req, file, cb) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+
+          cb(null, unique + extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  async updateProfile(
+    @Req() req,
+    @Body() dto: UpdateProfileDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const userId = req.user.id;
+
+    const imagePath = file ? `/uploads/profile/${file.filename}` : undefined;
+
+    return this.mobileService.updateProfile(userId, dto, imagePath);
   }
 }
