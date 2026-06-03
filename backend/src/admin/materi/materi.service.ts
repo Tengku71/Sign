@@ -31,17 +31,39 @@ export class MateriService {
     });
   }
 
-  async findAll(page: number = 1, limit: number = 6, folderId?: number) {
-    const skip = (page - 1) * limit;
+  async findAll(
+    page: number,
+    limit: number,
+    folderId?: number,
+    search?: string,
+    sort?: string,
+  ) {
+    const where: any = {};
 
-    const where = folderId ? { folderId } : {};
+    if (folderId !== undefined && folderId !== null && !isNaN(folderId)) {
+      where.folderId = folderId;
+    }
+
+    if (search && search.trim()) {
+      where.label = { contains: search.trim(), mode: 'insensitive' };
+    }
+
+    const orderBy: any =
+      sort === 'oldest'
+        ? { createdAt: 'asc' }
+        : sort === 'az'
+          ? { label: 'asc' }
+          : sort === 'za'
+            ? { label: 'desc' }
+            : { createdAt: 'desc' };
 
     const [data, total] = await Promise.all([
       this.prisma.materi.findMany({
         where,
-        skip,
+        orderBy,
+        skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        include: { folder: true },
       }),
       this.prisma.materi.count({ where }),
     ]);

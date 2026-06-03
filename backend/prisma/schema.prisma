@@ -63,4 +63,26 @@ model Question {
   createdAt DateTime @default(now())
 }
 
+model AiModel {
+  id               Int      @id @default(autoincrement())
+
+  name             String
+  version          String   @unique
+
+  modelPath        String
+  labelsPath       String?
+
+  inputWidth       Int?
+  inputHeight      Int?
+
+  normalizeMean    Float?   @default(127.5)
+  normalizeStd     Float?   @default(127.5)
+
+  scoreThreshold   Float?   @default(0.5)
+
+  isActive         Boolean  @default(false)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
 

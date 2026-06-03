@@ -16,4 +16,25 @@ export type Admin = {
   createdAt: string;
 };
 
+export type AIModel = {
+  id: number;
+  name: string;
+  version: string;
+
+  modelPath: string;
+  labelsPath: string | null;
+
+  inputWidth: number;
+  inputHeight: number;
+
+  normalizeMean: number;
+  normalizeStd: number;
+
+  scoreThreshold: number;
+
+  isActive: boolean;
+
+  createdAt: string;
+};
+
 export const API = import.meta.env.VITE_API_URL ?? "/api";

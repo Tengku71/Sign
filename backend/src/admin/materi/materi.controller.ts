@@ -79,10 +79,23 @@ export class MateriController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '6',
     @Query('folderId') folderId?: string,
+    @Query('search') search?: string,
+    @Query('sort') sort?: string,
   ) {
     if (!req.session['adminId']) throw new UnauthorizedException();
-    const parsedFolderId = folderId ? +folderId : undefined;
-    return this.materiService.findAll(+page, +limit, parsedFolderId);
+
+    const parsedFolderId =
+      folderId && folderId.trim() !== '' && !isNaN(+folderId)
+        ? +folderId
+        : undefined;
+
+    return this.materiService.findAll(
+      +page,
+      +limit,
+      parsedFolderId,
+      search,
+      sort,
+    );
   }
 
   @Delete(':id')

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { logoutAdmin } from "$lib/admin/logout";
-  import { LayoutPanelLeft, LibraryBig, ClipboardClock, UserRoundPen, LogOut } from "@lucide/svelte";
+  import { LayoutPanelLeft, LibraryBig, ClipboardClock, UserRoundPen, LogOut, Puzzle } from "@lucide/svelte";
 
   const { data } = $props();
 
@@ -10,6 +10,7 @@
     { href: "/admin/materi", label: "Materi", icon: LibraryBig },
     { href: "/admin/kuis", label: "Kuis Waktu", icon: ClipboardClock },
     { href: "/admin/user-akun", label: "User Akun", icon: UserRoundPen },
+    { href: "/admin/model", label: "Ai Config", icon: Puzzle },
   ];
 
   const currentPath = $derived(page.url.pathname);

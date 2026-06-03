@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   Put,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { MobileService } from './mobile.service';
 import { MobileRegisterDto } from './dto/register.dto';

@@ -19,9 +19,10 @@
 
   // Upload State
   let label = $state("");
-  let selectedFile = $state<File | null>(null);
+  let selectedFiles = $state<File[]>([]);
   let uploadFolderId = $state<string>("");
   let uploading = $state(false);
+  let uploadProgress = $state(0);
   let uploadError = $state("");
   let uploadSuccess = $state("");
 
@@ -39,6 +40,10 @@
   let folderToDelete = $state<any | null>(null);
   let deletingFolder = $state(false);
 
+  let searchQuery = $state("");
+  let sortBy = $state<"newest" | "oldest" | "az" | "za">("newest");
+  let searchDebounce: ReturnType<typeof setTimeout>;
+
   onMount(async () => {
     await Promise.all([fetchFolders(), fetchMateri(1)]);
   });
@@ -52,12 +57,25 @@
 
   async function fetchMateri(page: number) {
     loadingData = true;
-    const res = await getAllMateri(page, limit, selectedFolderId);
+    const res = await getAllMateri(page, limit, selectedFolderId, searchQuery, sortBy);
     if (res.success && res.data) {
       materiList = res.data;
       totalPages = res.meta?.totalPages || 1;
     }
     loadingData = false;
+  }
+
+  function handleSearchInput() {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(async () => {
+      currentPage = 1;
+      await fetchMateri(1);
+    }, 400);
+  }
+
+  async function handleSortChange() {
+    currentPage = 1;
+    await fetchMateri(1);
   }
 
   async function selectFolder(id: number | null) {
@@ -106,30 +124,48 @@
 
   function handleFileChange(e: Event) {
     const target = e.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) selectedFile = target.files[0];
+    if (target.files && target.files.length > 0) {
+      selectedFiles = Array.from(target.files);
+    }
   }
 
   async function handleUpload(e: Event) {
     e.preventDefault();
-    if (!selectedFile || !label) return;
+    if (selectedFiles.length === 0) return;
+
     uploading = true;
     uploadError = "";
     uploadSuccess = "";
+    uploadProgress = 0;
 
-    const res = await uploadMateri(label, selectedFile, uploadFolderId ? +uploadFolderId : null);
+    let failed = 0;
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
 
-    if (res.success) {
-      uploadSuccess = "Video uploaded successfully!";
-      label = "";
-      selectedFile = null;
-      uploadFolderId = "";
-      const fileInput = document.getElementById("videoInput") as HTMLInputElement;
-      if (fileInput) fileInput.value = "";
-      currentPage = 1;
-      await fetchMateri(1);
-    } else {
-      uploadError = res.message || "Upload failed";
+      // Use shared label if provided, otherwise use filename without extension
+      const fileLabel = label.trim() || file.name.replace(/\.[^/.]+$/, "");
+
+      const folderName = folderList.find((f) => f.id === +uploadFolderId)?.name;
+      const res = await uploadMateri(fileLabel, file, uploadFolderId ? +uploadFolderId : null, folderName || null);
+      if (!res.success) failed++;
+      uploadProgress = Math.round(((i + 1) / selectedFiles.length) * 100);
     }
+
+    if (failed === 0) {
+      uploadSuccess = `${selectedFiles.length} video(s) uploaded successfully!`;
+    } else if (failed < selectedFiles.length) {
+      uploadSuccess = `${selectedFiles.length - failed} uploaded, ${failed} failed.`;
+    } else {
+      uploadError = "All uploads failed.";
+    }
+
+    label = "";
+    selectedFiles = [];
+    uploadFolderId = "";
+    const fileInput = document.getElementById("videoInput") as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+    currentPage = 1;
+    await fetchMateri(1);
     uploading = false;
   }
 
@@ -208,12 +244,11 @@
   <!-- UPLOAD FORM -->
   <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 mb-8">
     <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-      <FileUp class="w-5 h-5" /> Upload New Video
+      <FileUp class="w-5 h-5" /> Upload New Video(s)
     </h2>
     <form onsubmit={handleUpload} class="space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <input type="text" bind:value={label} placeholder="Video Title" required class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500" />
-
+        <input type="text" bind:value={label} placeholder="Shared title (optional for bulk)" class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500" />
         <select bind:value={uploadFolderId} class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white outline-none focus:ring-2 focus:ring-blue-500">
           <option value="" class="bg-slate-800">No Folder (Root)</option>
           {#each folderList as folder}
@@ -225,15 +260,32 @@
           id="videoInput"
           type="file"
           accept="video/*"
+          multiple
           onchange={handleFileChange}
           required
           class="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer text-slate-400"
         />
       </div>
 
-      {#if selectedFile}
-        <p class="text-sm text-slate-400">Selected: {selectedFile.name}</p>
+      <!-- Selected files list -->
+      {#if selectedFiles.length > 0}
+        <p class="text-xs text-slate-400">
+          {#if label.trim()}
+            {selectedFiles.length} file(s) — all saved as "<span class="text-white">{label}</span>"
+          {:else}
+            {selectedFiles.length} file(s) — each saved using its own filename
+          {/if}
+        </p>
       {/if}
+
+      <!-- Progress bar -->
+      {#if uploading}
+        <div class="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+          <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: {uploadProgress}%"></div>
+        </div>
+        <p class="text-xs text-slate-400 text-center">{uploadProgress}% — uploading {selectedFiles.length} file(s)...</p>
+      {/if}
+
       {#if uploadError}
         <div class="bg-red-500/20 text-red-300 px-4 py-3 rounded-lg text-sm border border-red-500/50">{uploadError}</div>
       {/if}
@@ -241,10 +293,45 @@
         <div class="bg-emerald-500/20 text-emerald-300 px-4 py-3 rounded-lg text-sm border border-emerald-500/50">{uploadSuccess}</div>
       {/if}
 
-      <button type="submit" disabled={uploading || !selectedFile} class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400/50">
-        {uploading ? "Uploading..." : "Save Materi"}
+      <button type="submit" disabled={uploading || selectedFiles.length === 0} class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-blue-400/50">
+        {uploading ? `Uploading... (${uploadProgress}%)` : `Save ${selectedFiles.length > 1 ? `${selectedFiles.length} Videos` : "Materi"}`}
       </button>
     </form>
+  </div>
+
+  <!-- SEARCH & SORT BAR -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="relative flex-1">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+      </svg>
+      <input
+        type="text"
+        bind:value={searchQuery}
+        oninput={handleSearchInput}
+        placeholder="Search by title..."
+        class="w-full pl-9 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      {#if searchQuery}
+        <button
+          onclick={() => {
+            searchQuery = "";
+            currentPage = 1;
+            fetchMateri(1);
+          }}
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      {/if}
+    </div>
+
+    <select bind:value={sortBy} onchange={handleSortChange} class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48">
+      <option value="newest" class="bg-slate-800">Newest First</option>
+      <option value="oldest" class="bg-slate-800">Oldest First</option>
+      <option value="az" class="bg-slate-800">Title A → Z</option>
+      <option value="za" class="bg-slate-800">Title Z → A</option>
+    </select>
   </div>
 
   <!-- MATERI GRID -->
