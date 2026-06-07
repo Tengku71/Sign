@@ -7,4 +7,7 @@ export default defineConfig({
   ssr: {
     noExternal: ["lucide-svelte"],
   },
+  build: {
+    minify: "esbuild",
+  },
 });
