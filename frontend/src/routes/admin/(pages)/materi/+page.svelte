@@ -3,7 +3,7 @@
   import { goto } from "$app/navigation";
   import { Trash2, FileUp, FolderPlus, Folder, X } from "@lucide/svelte";
   import { getAllMateri, uploadMateri, createFolder, getAllFolders, deleteFolder, deleteMateri } from "$lib/admin/materi";
-  import { API } from "$lib/types";
+  import { APIMateri } from "$lib/types";
 
   let materiList = $state<any[]>([]);
   let folderList = $state<any[]>([]);
@@ -187,7 +187,7 @@
     deleting = false;
   }
 
-  const videoUrl = (path: string) => `${API}${path}`;
+  const videoUrl = (path: string) => `${APIMateri}${path}`;
   const pages = $derived(Array.from({ length: totalPages }, (_, i) => i + 1));
 </script>
 

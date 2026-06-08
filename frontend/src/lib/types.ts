@@ -37,4 +37,5 @@ export type AIModel = {
   createdAt: string;
 };
 
-export const API = import.meta.env.VITE_API_URL ?? "/api";
+export const API = import.meta.env.VITE_API_URL;
+export const APIMateri = import.meta.env.VITE_API_URL_MATERI;
