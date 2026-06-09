@@ -26,9 +26,11 @@ async function bootstrap() {
       'http://localhost:3001',
       'http://localhost:5173',
       'https://sign.tengkudimas.my.id',
+      'https://api.tengkudimas.my.id',
     ],
     credentials: true,
   });
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
