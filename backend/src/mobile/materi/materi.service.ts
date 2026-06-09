@@ -22,14 +22,7 @@ export class MateriService {
       where.label = { contains: search.trim(), mode: 'insensitive' };
     }
 
-    const orderBy: any =
-      sort === 'oldest'
-        ? { createdAt: 'asc' }
-        : sort === 'az'
-          ? { label: 'asc' }
-          : sort === 'za'
-            ? { label: 'desc' }
-            : { createdAt: 'desc' };
+    const orderBy: any = sort === 'za' ? { label: 'desc' } : { label: 'asc' };
 
     const [data, total] = await Promise.all([
       this.prisma.materi.findMany({
