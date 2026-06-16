@@ -4,7 +4,7 @@ import { MateriService } from './materi.service';
 
 @Module({
   providers: [MateriService],
-  controllers: [MateriService],
-  exports: [MateriController],
+  controllers: [MateriController],
+  exports: [MateriService],
 })
 export class MateriModule {}
