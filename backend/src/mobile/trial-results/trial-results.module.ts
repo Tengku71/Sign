@@ -4,6 +4,7 @@ import { TrialResultsController } from './trial-results.controller';
 
 @Module({
   providers: [TrialResultsService],
-  controllers: [TrialResultsController]
+  controllers: [TrialResultsController],
+  exports: [TrialResultsService],
 })
 export class TrialResultsModule {}
