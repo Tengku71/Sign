@@ -21,6 +21,7 @@ model User {
   image      String?
   isVerified Boolean  @default(false)
   createdAt DateTime @default(now())
+  trialResults TrialResult[]
 } 
 
 model Admin {
@@ -45,6 +46,21 @@ model Materi {
   folderId  Int?
   folder    Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  trialResults TrialResult[]
+}
+
+model TrialResult {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  materiId    Int
+  correct     Int
+  wrong       Int
+  total       Int
+  completedAt DateTime
+  createdAt   DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  materi Materi @relation(fields: [materiId], references: [id], onDelete: Cascade)
 }
 
 model QuizMode {

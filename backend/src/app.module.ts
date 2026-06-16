@@ -12,6 +12,7 @@ import { KuisModule } from './admin/kuis/kuis.module';
 import { MobileService } from './mobile/mobile.service';
 import { MobileController } from './mobile/mobile.controller';
 import { MobileModule } from './mobile/mobile.module';
+import { TrialResultsModule } from './trial-results/trial-results.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MobileModule } from './mobile/mobile.module';
     FolderModule,
     KuisModule,
     MobileModule,
+    TrialResultsModule,
   ],
   controllers: [AppController, MobileController],
   providers: [AppService, PrismaService, MobileService],

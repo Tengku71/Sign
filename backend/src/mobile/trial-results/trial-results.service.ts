@@ -1,0 +1,28 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateTrialResultDto } from '../dto/create-trial-result.dto';
+
+@Injectable()
+export class TrialResultsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(userId: number, dto: CreateTrialResultDto) {
+    return this.prisma.trialResult.create({
+      data: {
+        userId,
+        materiId: dto.materiId,
+        correct: dto.correct,
+        wrong: dto.wrong,
+        total: dto.total,
+        completedAt: new Date(dto.completedAt),
+      },
+    });
+  }
+
+  async findByUserAndMateri(userId: number, materiId: number) {
+    return this.prisma.trialResult.findMany({
+      where: { userId, materiId },
+      orderBy: { completedAt: 'desc' },
+    });
+  }
+}
