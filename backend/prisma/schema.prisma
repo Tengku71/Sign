@@ -11,24 +11,27 @@ datasource db {
   provider = "postgresql"
 }
 
-model User { 
-  id    Int     @id @default(autoincrement()) 
-  email String  @unique
-  name  String
-  password String
-  scores Int  @default(0)
-  level Int   @default(1)
-  image      String?
-  isVerified Boolean  @default(false)
-  createdAt DateTime @default(now())
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  name         String
+  password     String
+  scores       Int           @default(0)
+  level        Int           @default(1)
+  image        String?
+  streak       Int           @default(0)
+  bestStreak   Int           @default(0)
+  isVerified   Boolean       @default(false)
+  createdAt    DateTime      @default(now())
   trialResults TrialResult[]
-} 
+  dailyTrials  DailyTrial[]
+}
 
 model Admin {
-  id    Int     @id @default(autoincrement()) 
-  email String  @unique
-  name  String
-  password String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
   createdAt DateTime @default(now())
 }
 
@@ -40,12 +43,12 @@ model Folder {
 }
 
 model Materi {
-  id Int @id @default(autoincrement())
-  label String
-  path String
-  folderId  Int?
-  folder    Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id           Int           @id @default(autoincrement())
+  label        String
+  path         String
+  folderId     Int?
+  folder       Folder?       @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
   trialResults TrialResult[]
 }
 
@@ -63,42 +66,55 @@ model TrialResult {
   materi Materi @relation(fields: [materiId], references: [id], onDelete: Cascade)
 }
 
+model DailyTrial {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  date      DateTime @db.Date
+  correct   Int
+  wrong     Int
+  total     Int
+  labels    String[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date]) // Ensures a user can only have one trial record per day
+}
+
 model QuizMode {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  timeLimit Int 
+  timeLimit Int
   questions Question[]
   createdAt DateTime   @default(now())
 }
 
 model Question {
-  id       Int      @id @default(autoincrement())
-  options  Json     
-  modeId   Int
-  mode     QuizMode @relation(fields: [modeId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  options   Json
+  modeId    Int
+  mode      QuizMode @relation(fields: [modeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 
 model AiModel {
-  id               Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  name             String
-  version          String   @unique
+  name    String
+  version String @unique
 
-  modelPath        String
-  labelsPath       String?
+  modelPath  String
+  labelsPath String?
 
-  inputWidth       Int?
-  inputHeight      Int?
+  inputWidth  Int?
+  inputHeight Int?
 
-  normalizeMean    Float?   @default(127.5)
-  normalizeStd     Float?   @default(127.5)
+  normalizeMean Float? @default(127.5)
+  normalizeStd  Float? @default(127.5)
 
-  scoreThreshold   Float?   @default(0.5)
+  scoreThreshold Float? @default(0.5)
 
-  isActive         Boolean  @default(false)
+  isActive Boolean @default(false)
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
