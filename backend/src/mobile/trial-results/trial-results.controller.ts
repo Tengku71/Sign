@@ -3,7 +3,7 @@ import { TrialResultsService } from './trial-results.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateTrialResultDto } from '../dto/create-trial-result.dto';
 
-@Controller('trial-results')
+@Controller('mobile/trial-results')
 @UseGuards(JwtAuthGuard)
 export class TrialResultsController {
   constructor(private readonly trialResultsService: TrialResultsService) {}
