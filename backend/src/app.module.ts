@@ -8,7 +8,6 @@ import { AdminModule } from './admin/admin.module';
 import { ConfigModule } from '@nestjs/config';
 import { MateriModule } from './admin/materi/materi.module';
 import { FolderModule } from './admin/materi/folder/folder.module';
-import { KuisModule } from './admin/kuis/kuis.module';
 import { MobileService } from './mobile/mobile.service';
 import { MobileController } from './mobile/mobile.controller';
 import { MobileModule } from './mobile/mobile.module';
@@ -22,7 +21,6 @@ import { TrialResultsModule } from './mobile/trial-results/trial-results.module'
     AdminModule,
     MateriModule,
     FolderModule,
-    KuisModule,
     MobileModule,
     TrialResultsModule,
   ],
