@@ -1,18 +1,19 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDailyTrialDto } from '../dto/create-daily-trial.dto';
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { format, parseISO } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class DailyTrialService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private getJakartaDayStart(date: Date | string): Date {
-    const jakartaDate = toZonedTime(date, 'Asia/Jakarta');
+  private getJakartaDayStart(date: Date): Date {
+    const dateString = format(toZonedTime(date, 'Asia/Jakarta'), 'yyyy-MM-dd');
 
-    jakartaDate.setHours(0, 0, 0, 0);
+    const jakartaMidnight = parseISO(`${dateString}T00:00:00`);
 
-    return fromZonedTime(jakartaDate, 'Asia/Jakarta');
+    return fromZonedTime(jakartaMidnight, 'Asia/Jakarta');
   }
 
   async saveResult(userId: number, dto: CreateDailyTrialDto) {
@@ -61,6 +62,7 @@ export class DailyTrialService {
 
     const newBestStreak = Math.max(newStreak, user.bestStreak);
 
+    // Transaction
     const [trial] = await this.prisma.$transaction([
       this.prisma.dailyTrial.create({
         data: {
@@ -98,13 +100,15 @@ export class DailyTrialService {
       where: { userId_date: { userId, date: todayStart } },
     });
 
+    const completedToday = !!todaysTrial;
+
     const lastTrial = await this.prisma.dailyTrial.findFirst({
       where: { userId },
       orderBy: { date: 'desc' },
       select: { date: true },
     });
 
-    let effectiveStreak = user.streak;
+    let currentStreak = user.streak;
     let streakStatus = 'active';
 
     if (lastTrial) {
@@ -112,38 +116,33 @@ export class DailyTrialService {
       const diffTime = todayStart.getTime() - lastPlayDate.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays > 1) {
-        effectiveStreak = 0;
-        streakStatus = 'broken';
-      } else if (diffDays === 1 && !todaysTrial) {
-        streakStatus = 'pending_today';
-        effectiveStreak = user.streak;
-      } else if (todaysTrial) {
+      if (diffDays === 0) {
         streakStatus = 'completed';
-        effectiveStreak = user.streak;
+        currentStreak = user.streak;
+      } else if (diffDays === 1) {
+        streakStatus = 'pending_today';
+      } else {
+        streakStatus = 'lost';
+        currentStreak = 0;
       }
+    } else {
+      currentStreak = 0;
+      streakStatus = 'none';
     }
 
     return {
-      streak: effectiveStreak,
+      streak: currentStreak,
       bestStreak: user.bestStreak,
-      completedToday: !!todaysTrial,
-      streakStatus: streakStatus, // Helper for frontend
+      completedToday: completedToday,
+      streakStatus: streakStatus,
     };
   }
 
   async getLeaderboard() {
     return this.prisma.user.findMany({
       take: 20,
-      orderBy: {
-        streak: 'desc',
-      },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        streak: true,
-      },
+      orderBy: { streak: 'desc' },
+      select: { id: true, name: true, image: true, streak: true },
     });
   }
 }
