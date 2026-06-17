@@ -1,87 +1,32 @@
-import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDailyTrialDto } from '../dto/create-daily-trial.dto';
-import { format, parseISO } from 'date-fns';
+import { format, addHours } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class DailyTrialService {
-  private readonly logger = new Logger(DailyTrialService.name);
-
   constructor(private readonly prisma: PrismaService) {}
 
-  private getStrictJakartaDay(dateInput: Date): Date {
-    const zonedDate = toZonedTime(dateInput, 'Asia/Jakarta');
-
-    const dateString = format(zonedDate, 'yyyy-MM-dd');
-
-    const parsedDate = parseISO(`${dateString}T00:00:00`);
-
-    const finalDate = fromZonedTime(parsedDate, 'Asia/Jakarta');
-
-    // this.logger.debug(
-    //   `Input: ${dateInput.toISOString()} -> Calculated Day: ${finalDate.toISOString()}`,
-    // );
-
-    return finalDate;
-  }
-
-  async getStreakStatus(userId: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { streak: true, bestStreak: true },
-    });
-
-    if (!user) throw new ForbiddenException('User not found');
-
-    const todayStart = this.getStrictJakartaDay(new Date());
-
-    const todaysTrial = await this.prisma.dailyTrial.findUnique({
-      where: { userId_date: { userId, date: todayStart } },
-    });
-
-    const isCompletedToday = !!todaysTrial;
-
-    let currentStreak = user.streak;
-    let streakStatus = 'none';
-    const lastTrial = await this.prisma.dailyTrial.findFirst({
-      where: { userId },
-      orderBy: { date: 'desc' },
-      select: { date: true },
-    });
-
-    if (lastTrial) {
-      const lastPlayDate = this.getStrictJakartaDay(lastTrial.date);
-
-      const diffMs = todayStart.getTime() - lastPlayDate.getTime();
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-      if (isCompletedToday) {
-        streakStatus = 'completed';
-        currentStreak = user.streak;
-      } else if (diffDays === 1) {
-        streakStatus = 'pending_today';
-        currentStreak = user.streak;
-      } else if (diffDays > 1) {
-        streakStatus = 'lost';
-        currentStreak = 0;
-      } else {
-        streakStatus = 'active';
-      }
-    }
-
-    return {
-      streak: currentStreak,
-      bestStreak: user.bestStreak,
-      completedToday: isCompletedToday,
-      streakStatus: streakStatus,
-    };
+  private getJakartaStart(date: Date): Date {
+    const zoned = toZonedTime(date, 'Asia/Jakarta');
+    zoned.setHours(0, 0, 0, 0);
+    return fromZonedTime(zoned, 'Asia/Jakarta');
   }
 
   async saveResult(userId: number, dto: CreateDailyTrialDto) {
-    const todayStart = this.getStrictJakartaDay(new Date());
-    const existingTrial = await this.prisma.dailyTrial.findUnique({
-      where: { userId_date: { userId, date: todayStart } },
+    const todayStart = this.getJakartaStart(new Date());
+
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    const existingTrial = await this.prisma.dailyTrial.findFirst({
+      where: {
+        userId,
+        date: {
+          gte: todayStart,
+          lt: tomorrowStart,
+        },
+      },
     });
 
     if (existingTrial) {
@@ -105,8 +50,9 @@ export class DailyTrialService {
     });
 
     let newStreak = 1;
+
     if (lastTrial) {
-      const lastDate = this.getStrictJakartaDay(lastTrial.date); // Strict method
+      const lastDate = this.getJakartaStart(lastTrial.date);
       const diffDays = Math.floor(
         (todayStart.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
       );
@@ -135,7 +81,66 @@ export class DailyTrialService {
         },
       }),
     ]);
+
     return trial;
+  }
+
+  async getStreakStatus(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { streak: true, bestStreak: true },
+    });
+
+    if (!user) throw new ForbiddenException('User not found');
+
+    const now = new Date();
+    const todayStart = this.getJakartaStart(now);
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    const todaysTrial = await this.prisma.dailyTrial.findFirst({
+      where: {
+        userId,
+        date: {
+          gte: todayStart,
+          lt: tomorrowStart,
+        },
+      },
+    });
+
+    const completedToday = !!todaysTrial;
+
+    const lastTrial = await this.prisma.dailyTrial.findFirst({
+      where: { userId },
+      orderBy: { date: 'desc' },
+      select: { date: true },
+    });
+
+    let currentStreak = user.streak;
+    let streakStatus = 'none';
+
+    if (lastTrial) {
+      const lastPlayDate = this.getJakartaStart(lastTrial.date);
+      const diffMs = todayStart.getTime() - lastPlayDate.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (completedToday) {
+        streakStatus = 'completed';
+        currentStreak = user.streak;
+      } else if (diffDays === 1) {
+        streakStatus = 'pending_today';
+        currentStreak = user.streak;
+      } else if (diffDays > 1) {
+        streakStatus = 'lost';
+        currentStreak = 0;
+      }
+    }
+
+    return {
+      streak: currentStreak,
+      bestStreak: user.bestStreak,
+      completedToday: completedToday,
+      streakStatus: streakStatus,
+    };
   }
 
   async getLeaderboard() {
