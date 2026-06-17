@@ -12,7 +12,7 @@ export class DailyTrialService {
     const JAKARTA_OFFSET_MS = 7 * 60 * 60 * 1000;
     const jakartaMs = date.getTime() + JAKARTA_OFFSET_MS;
     const jakartaMidnightMs =
-      Math.floor(jakartaMs / (1000 * 60 * 60 * 24)) * (1000 * 60 * 60 * 24);
+      Math.floor(jakartaMs / (86400 * 1000)) * (86400 * 1000);
     return new Date(jakartaMidnightMs - JAKARTA_OFFSET_MS);
   }
 
@@ -134,6 +134,10 @@ export class DailyTrialService {
       } else if (diffDays > 1) {
         streakStatus = 'lost';
         currentStreak = 0;
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { streak: 0 },
+        });
       }
     }
 
