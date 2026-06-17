@@ -43,6 +43,9 @@ export class DailyTrialService {
       });
     }
 
+    console.log('todayStart:', todayStart.toISOString());
+    console.log('tomorrowStart:', tomorrowStart.toISOString());
+
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ForbiddenException('User not found');
 
@@ -108,6 +111,8 @@ export class DailyTrialService {
         },
       },
     });
+
+    console.log('todaysTrial:', todaysTrial);
 
     const completedToday = !!todaysTrial;
 
