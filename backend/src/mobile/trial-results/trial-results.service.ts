@@ -25,4 +25,14 @@ export class TrialResultsService {
       orderBy: { completedAt: 'desc' },
     });
   }
+
+  async findAllByUser(userId: number) {
+    return this.prisma.trialResult.findMany({
+      where: { userId },
+      orderBy: { completedAt: 'desc' },
+      include: {
+        materi: true,
+      },
+    });
+  }
 }

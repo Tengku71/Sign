@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
 import { TrialResultsService } from './trial-results.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateTrialResultDto } from '../dto/create-trial-result.dto';
@@ -12,5 +12,11 @@ export class TrialResultsController {
   async create(@Req() req, @Body() dto: CreateTrialResultDto) {
     const userId = req.user.id;
     return this.trialResultsService.create(userId, dto);
+  }
+
+  @Get()
+  async findAll(@Req() req) {
+    const userId = req.user.id;
+    return this.trialResultsService.findAllByUser(userId);
   }
 }
