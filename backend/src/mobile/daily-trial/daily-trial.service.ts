@@ -2,14 +2,22 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDailyTrialDto } from '../dto/create-daily-trial.dto';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class DailyTrialService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getJakartaDay(date: Date | string) {
+    const zonedDate = toZonedTime(date, 'Asia/Jakarta');
+
+    zonedDate.setHours(0, 0, 0, 0);
+
+    return fromZonedTime(zonedDate, 'Asia/Jakarta');
+  }
+
   async saveResult(userId: number, dto: CreateDailyTrialDto) {
-    const today = new Date(dto.date);
-    today.setUTCHours(0, 0, 0, 0);
+    const today = this.getJakartaDay(new Date());
 
     // 1. Check if already completed today
     const existingTrial = await this.prisma.dailyTrial.findUnique({
@@ -41,11 +49,10 @@ export class DailyTrialService {
     });
 
     if (lastTrial) {
-      const lastDate = new Date(lastTrial.date);
-      lastDate.setUTCHours(0, 0, 0, 0);
+      const lastDate = this.getJakartaDay(lastTrial.date);
 
       const diffTime = today.getTime() - lastDate.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays === 1) {
         // Consecutive day!
@@ -93,8 +100,7 @@ export class DailyTrialService {
 
     if (!user) throw new ForbiddenException('User not found');
 
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    const today = this.getJakartaDay(new Date());
 
     const completedToday = await this.prisma.dailyTrial.findUnique({
       where: { userId_date: { userId, date: today } },
