@@ -5,19 +5,11 @@ import { AuthModule } from 'src/auth/auth.module';
 import { MateriService } from './materi/materi.service';
 import { MateriController } from './materi/materi.controller';
 import { MateriModule } from './materi/materi.module';
-import { KuisService } from './kuis/kuis.service';
-import { KuisController } from './kuis/kuis.controller';
-import { KuisModule } from './kuis/kuis.module';
 import { AimodelController } from './aimodels/aimodels.controller';
 
 @Module({
-  imports: [AuthModule, MateriModule, KuisModule],
-  controllers: [
-    AdminController,
-    MateriController,
-    KuisController,
-    AimodelController,
-  ],
-  providers: [AdminService, MateriService, KuisService],
+  imports: [AuthModule, MateriModule],
+  controllers: [AdminController, MateriController, AimodelController],
+  providers: [AdminService, MateriService],
 })
 export class AdminModule {}
