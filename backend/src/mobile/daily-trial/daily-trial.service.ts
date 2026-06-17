@@ -9,9 +9,11 @@ export class DailyTrialService {
   constructor(private readonly prisma: PrismaService) {}
 
   private getJakartaStart(date: Date): Date {
-    const zoned = toZonedTime(date, 'Asia/Jakarta');
-    zoned.setHours(0, 0, 0, 0);
-    return fromZonedTime(zoned, 'Asia/Jakarta');
+    const JAKARTA_OFFSET_MS = 7 * 60 * 60 * 1000;
+    const jakartaMs = date.getTime() + JAKARTA_OFFSET_MS;
+    const jakartaMidnightMs =
+      Math.floor(jakartaMs / (1000 * 60 * 60 * 24)) * (1000 * 60 * 60 * 24);
+    return new Date(jakartaMidnightMs - JAKARTA_OFFSET_MS);
   }
 
   async saveResult(userId: number, dto: CreateDailyTrialDto) {
