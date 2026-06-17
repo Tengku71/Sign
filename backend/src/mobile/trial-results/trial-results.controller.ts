@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Query,
+} from '@nestjs/common';
 import { TrialResultsService } from './trial-results.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateTrialResultDto } from '../dto/create-trial-result.dto';
@@ -15,8 +23,17 @@ export class TrialResultsController {
   }
 
   @Get()
-  async findAll(@Req() req) {
-    const userId = req.user.id;
-    return this.trialResultsService.findAllByUser(userId);
+  async findAll(
+    @Req() req,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '5',
+    @Query('folderId') folderId?: string,
+  ) {
+    return this.trialResultsService.findAllByUser(
+      req.user.id,
+      parseInt(page),
+      parseInt(limit),
+      folderId ? parseInt(folderId) : undefined,
+    );
   }
 }

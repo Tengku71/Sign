@@ -26,13 +26,57 @@ export class TrialResultsService {
     });
   }
 
-  async findAllByUser(userId: number) {
-    return this.prisma.trialResult.findMany({
-      where: { userId },
-      orderBy: { completedAt: 'desc' },
-      include: {
-        materi: true,
+  async findAllByUser(
+    userId: number,
+    page: number,
+    limit: number,
+    folderId?: number,
+  ) {
+    const skip = (page - 1) * limit;
+    const where: any = { userId };
+
+    if (folderId) {
+      where.materi = { folderId: folderId };
+    }
+
+    // Get paginated data, total count, and aggregate stats in one go
+    const [data, total, agg] = await Promise.all([
+      this.prisma.trialResult.findMany({
+        where,
+        orderBy: { completedAt: 'desc' },
+        include: { materi: true },
+        skip,
+        take: limit,
+      }),
+      this.prisma.trialResult.count({ where }),
+      this.prisma.trialResult.aggregate({
+        where,
+        _sum: { correct: true, wrong: true },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const totalCorrect = agg._sum.correct || 0;
+    const totalWrong = agg._sum.wrong || 0;
+    const accuracy =
+      totalCorrect + totalWrong > 0
+        ? (totalCorrect / (totalCorrect + totalWrong)) * 100
+        : 0;
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-    });
+      stats: {
+        totalTrials: agg._count._all,
+        totalCorrect,
+        totalWrong,
+        accuracy,
+      },
+    };
   }
 }
