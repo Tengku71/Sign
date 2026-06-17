@@ -18,6 +18,25 @@ export class MobileService {
     private jwtService: JwtService,
   ) {}
 
+  async verify(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const { password, ...userData } = user;
+
+    return {
+      valid: true,
+      user: userData,
+    };
+  }
+
   async register(dto: MobileRegisterDto) {
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },

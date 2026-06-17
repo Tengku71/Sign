@@ -36,11 +36,8 @@ export class MobileController {
 
   @UseGuards(JwtAuthGuard)
   @Get('verify')
-  async verify(@Req() req: Request) {
-    return {
-      valid: true,
-      user: req['user'],
-    };
+  async verify(@Req() req) {
+    return this.mobileService.verify(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
