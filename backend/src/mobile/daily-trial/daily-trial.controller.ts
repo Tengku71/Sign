@@ -18,4 +18,9 @@ export class DailyTrialController {
   async getStreakStatus(@Req() req: any) {
     return this.dailyTrialService.getStreakStatus(req.user.id);
   }
+
+  @Get('leaderboard')
+  async getLeaderboard() {
+    return this.dailyTrialService.getLeaderboard();
+  }
 }

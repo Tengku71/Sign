@@ -106,4 +106,19 @@ export class DailyTrialService {
       completedToday: !!completedToday,
     };
   }
+
+  async getLeaderboard() {
+    return this.prisma.user.findMany({
+      take: 20,
+      orderBy: {
+        streak: 'desc',
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        streak: true,
+      },
+    });
+  }
 }

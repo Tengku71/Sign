@@ -80,22 +80,6 @@ model DailyTrial {
   @@unique([userId, date]) // Ensures a user can only have one trial record per day
 }
 
-model QuizMode {
-  id        Int        @id @default(autoincrement())
-  name      String     @unique
-  timeLimit Int
-  questions Question[]
-  createdAt DateTime   @default(now())
-}
-
-model Question {
-  id        Int      @id @default(autoincrement())
-  options   Json
-  modeId    Int
-  mode      QuizMode @relation(fields: [modeId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-}
-
 model AiModel {
   id Int @id @default(autoincrement())
 
