@@ -266,7 +266,7 @@
         <tr class="border-b border-white/10 text-slate-400">
           <th class="py-4">Name</th>
           <th>Version</th>
-          <th>Input</th>
+          <!-- <th>Input</th> -->
           <th>Status</th>
           <th class="text-right">Actions</th>
         </tr>
