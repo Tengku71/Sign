@@ -10,6 +10,8 @@ import * as bcrypt from 'bcryptjs';
 import { MobileRegisterDto } from './dto/register.dto';
 import { MobileLoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-passwords.dto';
+import { join } from 'path';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class MobileService {
@@ -83,8 +85,22 @@ export class MobileService {
   }
 
   async updateProfile(userId: number, dto: any, imagePath?: string) {
-    const data: any = {};
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { image: true },
+    });
+    if (currentUser?.image && imagePath) {
+      const oldImagePath = join(process.cwd(), currentUser.image);
 
+      try {
+        await unlink(oldImagePath);
+        console.log(`Deleted old image: ${currentUser.image}`);
+      } catch (err) {
+        // console.error('Could not delete old image:', err.message);
+      }
+    }
+
+    const data: any = {};
     if (dto.name) data.name = dto.name;
     if (dto.email) data.email = dto.email;
     if (imagePath) data.image = imagePath;
