@@ -5,11 +5,11 @@
 
   let name = $state("");
   let version = $state("");
-  let inputWidth = $state(320);
-  let inputHeight = $state(320);
-  let normalizeMean = $state(127.5);
-  let normalizeStd = $state(127.5);
-  let scoreThreshold = $state(0.5);
+  // let inputWidth = $state(320);
+  // let inputHeight = $state(320);
+  // let normalizeMean = $state(127.5);
+  // let normalizeStd = $state(127.5);
+  // let scoreThreshold = $state(0.5);
   let isActive = $state(true);
 
   let modelFile: File | null = null;
@@ -58,7 +58,8 @@
     loading = true;
     success = "";
 
-    const res = await uploadModel(name, version, inputWidth, inputHeight, normalizeMean, normalizeStd, scoreThreshold, isActive, modelFile, labelsFile);
+    // const res = await uploadModel(name, version, inputWidth, inputHeight, normalizeMean, normalizeStd, scoreThreshold, isActive, modelFile, labelsFile);
+    const res = await uploadModel(name, version, isActive, modelFile, labelsFile);
 
     loading = false;
 
@@ -114,11 +115,11 @@
       id: model.id,
       name: model.name,
       version: model.version,
-      inputWidth: model.inputWidth,
-      inputHeight: model.inputHeight,
-      normalizeMean: model.normalizeMean,
-      normalizeStd: model.normalizeStd,
-      scoreThreshold: model.scoreThreshold,
+      // inputWidth: model.inputWidth,
+      // inputHeight: model.inputHeight,
+      // normalizeMean: model.normalizeMean,
+      // normalizeStd: model.normalizeStd,
+      // scoreThreshold: model.scoreThreshold,
       isActive: model.isActive,
       modelPath: model.modelPath,
       labelsPath: model.labelsPath,
@@ -131,17 +132,17 @@
 
     editLoading = true;
 
-    console.log(editingModel.normalizeMean);
-    console.log(typeof editingModel.normalizeMean);
+    // console.log(editingModel.normalizeMean);
+    // console.log(typeof editingModel.normalizeMean);
 
     const res = await updateModel(editingModel.id, {
       name: editingModel.name,
       version: editingModel.version,
-      inputWidth: editingModel.inputWidth,
-      inputHeight: editingModel.inputHeight,
-      normalizeMean: editingModel.normalizeMean,
-      normalizeStd: editingModel.normalizeStd,
-      scoreThreshold: editingModel.scoreThreshold,
+      // inputWidth: editingModel.inputWidth,
+      // inputHeight: editingModel.inputHeight,
+      // normalizeMean: editingModel.normalizeMean,
+      // normalizeStd: editingModel.normalizeStd,
+      // scoreThreshold: editingModel.scoreThreshold,
       isActive: editingModel.isActive,
     });
 
@@ -178,25 +179,25 @@
         <input id="version" bind:value={version} class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white" placeholder="v1" />
       </div>
 
-      <div>
+      <!-- <div>
         <label for="inputWidth" class="text-sm text-slate-300 block mb-2"> Input Width </label>
 
         <input type="number" bind:value={inputWidth} class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white" />
-      </div>
+      </div> -->
 
-      <div>
+      <!-- <div>
         <label for="inputHeight" class="text-sm text-slate-300 block mb-2"> Input Height </label>
 
         <input type="number" bind:value={inputHeight} class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white" />
-      </div>
+      </div> -->
 
-      <div>
+      <!-- <div>
         <label for="normalizeMean" class="text-sm text-slate-300 block mb-2"> Normalize Mean </label>
 
         <input type="number" step="0.1" bind:value={normalizeMean} class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white" />
-      </div>
+      </div> -->
 
-      <div>
+      <!-- <div>
         <label for="normalizeStd" class="text-sm text-slate-300 block mb-2"> Normalize Std </label>
 
         <input type="number" step="0.1" bind:value={normalizeStd} class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white" />
@@ -206,7 +207,7 @@
         <label for="scoreThreshold" class="text-sm text-slate-300 block mb-2"> Score Threshold </label>
 
         <input type="number" step="0.1" bind:value={scoreThreshold} class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white" />
-      </div>
+      </div> -->
 
       <div class="flex items-center gap-3 mt-8">
         <input type="checkbox" bind:checked={isActive} />
@@ -282,9 +283,9 @@
               {model.version}
             </td>
 
-            <td class="text-slate-300">
+            <!-- <td class="text-slate-300">
               {model.inputWidth}x{model.inputHeight}
-            </td>
+            </td> -->
 
             <td>
               <div class="flex justify-end gap-3">
@@ -312,7 +313,7 @@
 
           <input bind:value={editingModel.version} class="w-full px-4 py-3 rounded-xl bg-black/20 text-white border border-slate-700" placeholder="Version" />
 
-          <div class="grid grid-cols-2 gap-4">
+          <!-- <div class="grid grid-cols-2 gap-4">
             <input type="number" bind:value={editingModel.inputWidth} class="px-4 py-3 rounded-xl bg-black/20 text-white border border-slate-700" />
 
             <input type="number" bind:value={editingModel.inputHeight} class="px-4 py-3 rounded-xl bg-black/20 text-white border border-slate-700" />
@@ -324,7 +325,7 @@
             <input type="number" step="0.1" bind:value={editingModel.normalizeStd} class="px-4 py-3 rounded-xl bg-black/20 text-white border border-slate-700" />
           </div>
 
-          <input type="number" step="0.1" bind:value={editingModel.scoreThreshold} class="w-full px-4 py-3 rounded-xl bg-black/20 text-white border border-slate-700" />
+          <input type="number" step="0.1" bind:value={editingModel.scoreThreshold} class="w-full px-4 py-3 rounded-xl bg-black/20 text-white border border-slate-700" /> -->
 
           <label class="flex items-center gap-3 text-white">
             <input type="checkbox" bind:checked={editingModel.isActive} />

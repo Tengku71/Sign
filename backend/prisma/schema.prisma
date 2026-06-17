@@ -105,14 +105,6 @@ model AiModel {
   modelPath  String
   labelsPath String?
 
-  inputWidth  Int?
-  inputHeight Int?
-
-  normalizeMean Float? @default(127.5)
-  normalizeStd  Float? @default(127.5)
-
-  scoreThreshold Float? @default(0.5)
-
   isActive Boolean @default(false)
 
   createdAt DateTime @default(now())

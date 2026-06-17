@@ -16,7 +16,6 @@ import {
 
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { promises as fs } from 'fs';
-
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -27,14 +26,10 @@ export class AimodelController {
 
   @Get()
   async getModels(@Req() req) {
-    if (!req.session['adminId']) {
-      throw new UnauthorizedException();
-    }
+    if (!req.session['adminId']) throw new UnauthorizedException();
 
     return this.prisma.aiModel.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -44,18 +39,12 @@ export class AimodelController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: any,
   ) {
-    if (!req.session['adminId']) {
-      throw new UnauthorizedException();
-    }
+    if (!req.session['adminId']) throw new UnauthorizedException();
 
     if (body.isActive) {
       await this.prisma.aiModel.updateMany({
-        where: {
-          isActive: true,
-        },
-        data: {
-          isActive: false,
-        },
+        where: { isActive: true },
+        data: { isActive: false },
       });
     }
 
@@ -64,15 +53,6 @@ export class AimodelController {
       data: {
         name: body.name,
         version: body.version,
-
-        inputWidth: Number(body.inputWidth),
-        inputHeight: Number(body.inputHeight),
-
-        normalizeMean: Number(body.normalizeMean),
-        normalizeStd: Number(body.normalizeStd),
-
-        scoreThreshold: Number(body.scoreThreshold),
-
         isActive: body.isActive,
       },
     });
@@ -105,73 +85,44 @@ export class AimodelController {
     },
     @Body() body: any,
   ) {
-    if (!req.session['adminId']) {
-      throw new UnauthorizedException();
-    }
+    if (!req.session['adminId']) throw new UnauthorizedException();
 
     const modelFile = files.model?.[0];
     const labelsFile = files.labels?.[0];
 
-    const aiModel = await this.prisma.aiModel.create({
+    return this.prisma.aiModel.create({
       data: {
         name: body.name,
         version: body.version,
-
         modelPath: `/uploads/${modelFile!.filename}`,
         labelsPath: labelsFile ? `/uploads/${labelsFile.filename}` : null,
-
-        inputWidth: Number(body.inputWidth),
-        inputHeight: Number(body.inputHeight),
-
-        normalizeMean: Number(body.normalizeMean),
-        normalizeStd: Number(body.normalizeStd),
-
-        scoreThreshold: Number(body.scoreThreshold),
-
         isActive: body.isActive === 'true',
       },
     });
-
-    return aiModel;
   }
+
   @Delete(':id')
   async deleteModel(@Req() req, @Param('id', ParseIntPipe) id: number) {
-    if (!req.session['adminId']) {
-      throw new UnauthorizedException();
-    }
+    if (!req.session['adminId']) throw new UnauthorizedException();
 
-    const model = await this.prisma.aiModel.findUnique({
-      where: { id },
-    });
-
-    if (!model) {
-      throw new NotFoundException('Model not found');
-    }
+    const model = await this.prisma.aiModel.findUnique({ where: { id } });
+    if (!model) throw new NotFoundException('Model not found');
 
     try {
       if (model.modelPath) {
-        const filePath = join(
-          process.cwd(),
-          model.modelPath.replace(/^\/+/, ''),
+        await fs.unlink(
+          join(process.cwd(), model.modelPath.replace(/^\/+/, '')),
         );
-
-        await fs.unlink(filePath);
       }
-
       if (model.labelsPath) {
-        const labelsPath = join(
-          process.cwd(),
-          model.labelsPath.replace(/^\/+/, ''),
+        await fs.unlink(
+          join(process.cwd(), model.labelsPath.replace(/^\/+/, '')),
         );
-
-        await fs.unlink(labelsPath);
       }
     } catch (err) {
       console.error('File delete error:', err);
     }
 
-    return this.prisma.aiModel.delete({
-      where: { id },
-    });
+    return this.prisma.aiModel.delete({ where: { id } });
   }
 }

@@ -24,13 +24,13 @@ export type AIModel = {
   modelPath: string;
   labelsPath: string | null;
 
-  inputWidth: number;
-  inputHeight: number;
+  // inputWidth: number;
+  // inputHeight: number;
 
-  normalizeMean: number;
-  normalizeStd: number;
+  // normalizeMean: number;
+  // normalizeStd: number;
 
-  scoreThreshold: number;
+  // scoreThreshold: number;
 
   isActive: boolean;
 

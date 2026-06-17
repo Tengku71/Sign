@@ -3,11 +3,11 @@ import { API } from "$lib/types";
 export const uploadModel = async (
   name: string,
   version: string,
-  inputWidth: number,
-  inputHeight: number,
-  normalizeMean: number,
-  normalizeStd: number,
-  scoreThreshold: number,
+  // inputWidth: number,
+  // inputHeight: number,
+  // normalizeMean: number,
+  // normalizeStd: number,
+  // scoreThreshold: number,
   isActive: boolean,
   modelFile?: File | null,
   labelsFile?: File | null,
@@ -15,11 +15,11 @@ export const uploadModel = async (
   const formData = new FormData();
   formData.append("name", name);
   formData.append("version", version);
-  formData.append("inputWidth", String(inputWidth));
-  formData.append("inputHeight", String(inputHeight));
-  formData.append("normalizeMean", String(normalizeMean));
-  formData.append("normalizeStd", String(normalizeStd));
-  formData.append("scoreThreshold", String(scoreThreshold));
+  // formData.append("inputWidth", String(inputWidth));
+  // formData.append("inputHeight", String(inputHeight));
+  // formData.append("normalizeMean", String(normalizeMean));
+  // formData.append("normalizeStd", String(normalizeStd));
+  // formData.append("scoreThreshold", String(scoreThreshold));
   formData.append("isActive", String(isActive));
   if (modelFile) formData.append("model", modelFile);
   if (labelsFile) formData.append("labels", labelsFile);
@@ -56,11 +56,11 @@ export const updateModel = async (
   fields: {
     name?: string;
     version?: string;
-    inputWidth?: number;
-    inputHeight?: number;
-    normalizeMean?: number;
-    normalizeStd?: number;
-    scoreThreshold?: number;
+    // inputWidth?: number;
+    // inputHeight?: number;
+    // normalizeMean?: number;
+    // normalizeStd?: number;
+    // scoreThreshold?: number;
     isActive?: boolean;
   },
 ) => {
