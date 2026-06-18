@@ -16,7 +16,4 @@ export class CreateDailyTrialDto {
   @IsArray()
   @IsString({ each: true })
   labels!: string[];
-
-  @IsDateString()
-  date!: string; // Expects 'YYYY-MM-DD'
 }
