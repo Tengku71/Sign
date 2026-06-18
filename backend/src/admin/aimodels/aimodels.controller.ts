@@ -2,7 +2,7 @@ import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('mobile/models')
-export class MobileModelsController {
+export class AimodelsController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
