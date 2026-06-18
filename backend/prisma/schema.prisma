@@ -69,7 +69,7 @@ model TrialResult {
 model DailyTrial {
   id        Int      @id @default(autoincrement())
   userId    Int
-  date      DateTime @db.Date
+  date      String
   correct   Int
   wrong     Int
   total     Int

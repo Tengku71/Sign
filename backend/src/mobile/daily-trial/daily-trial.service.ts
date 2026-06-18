@@ -1,34 +1,28 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDailyTrialDto } from '../dto/create-daily-trial.dto';
-import { format, addHours } from 'date-fns';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 @Injectable()
 export class DailyTrialService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private getJakartaStart(date: Date): Date {
-    const JAKARTA_OFFSET_MS = 7 * 60 * 60 * 1000;
-    const jakartaMs = date.getTime() + JAKARTA_OFFSET_MS;
-    const jakartaMidnightMs =
-      Math.floor(jakartaMs / (86400 * 1000)) * (86400 * 1000);
-    return new Date(jakartaMidnightMs - JAKARTA_OFFSET_MS);
+  private getJakartaDateString(date: Date): string {
+    return format(toZonedTime(date, 'Asia/Jakarta'), 'yyyy-MM-dd');
+  }
+
+  private diffDaysFromStrings(a: string, b: string): number {
+    const dateA = new Date(a + 'T00:00:00.000Z');
+    const dateB = new Date(b + 'T00:00:00.000Z');
+    return Math.floor((dateA.getTime() - dateB.getTime()) / (86400 * 1000));
   }
 
   async saveResult(userId: number, dto: CreateDailyTrialDto) {
-    const todayStart = this.getJakartaStart(new Date());
-
-    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const todayString = this.getJakartaDateString(new Date());
 
     const existingTrial = await this.prisma.dailyTrial.findFirst({
-      where: {
-        userId,
-        date: {
-          gte: todayStart,
-          lt: tomorrowStart,
-        },
-      },
+      where: { userId, date: todayString },
     });
 
     if (existingTrial) {
@@ -43,23 +37,21 @@ export class DailyTrialService {
       });
     }
 
-    console.log('todayStart:', todayStart.toISOString());
-    console.log('tomorrowStart:', tomorrowStart.toISOString());
-
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new ForbiddenException('User not found');
 
     const lastTrial = await this.prisma.dailyTrial.findFirst({
       where: { userId },
       orderBy: { date: 'desc' },
+      select: { date: true },
     });
 
     let newStreak = 1;
 
     if (lastTrial) {
-      const lastDate = this.getJakartaStart(lastTrial.date);
-      const diffDays = Math.floor(
-        (todayStart.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+      const diffDays = this.diffDaysFromStrings(
+        todayString,
+        lastTrial.date as unknown as string,
       );
 
       if (diffDays === 1) newStreak = user.streak + 1;
@@ -71,7 +63,7 @@ export class DailyTrialService {
       this.prisma.dailyTrial.create({
         data: {
           userId,
-          date: todayStart,
+          date: todayString,
           correct: dto.correct,
           wrong: dto.wrong,
           total: dto.total,
@@ -98,21 +90,11 @@ export class DailyTrialService {
 
     if (!user) throw new ForbiddenException('User not found');
 
-    const now = new Date();
-    const todayStart = this.getJakartaStart(now);
-    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const todayString = this.getJakartaDateString(new Date());
 
     const todaysTrial = await this.prisma.dailyTrial.findFirst({
-      where: {
-        userId,
-        date: {
-          gte: todayStart,
-          lt: tomorrowStart,
-        },
-      },
+      where: { userId, date: todayString },
     });
-
-    console.log('todaysTrial:', todaysTrial);
 
     const completedToday = !!todaysTrial;
 
@@ -126,9 +108,10 @@ export class DailyTrialService {
     let streakStatus = 'none';
 
     if (lastTrial) {
-      const lastPlayDate = this.getJakartaStart(lastTrial.date);
-      const diffMs = todayStart.getTime() - lastPlayDate.getTime();
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffDays = this.diffDaysFromStrings(
+        todayString,
+        lastTrial.date as unknown as string,
+      );
 
       if (completedToday) {
         streakStatus = 'completed';
@@ -149,8 +132,8 @@ export class DailyTrialService {
     return {
       streak: currentStreak,
       bestStreak: user.bestStreak,
-      completedToday: completedToday,
-      streakStatus: streakStatus,
+      completedToday,
+      streakStatus,
     };
   }
 
