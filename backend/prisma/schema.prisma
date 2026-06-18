@@ -84,7 +84,7 @@ model AiModel {
   id Int @id @default(autoincrement())
 
   name    String
-  version String @unique
+  version String
 
   modelPath  String
   labelsPath String?
