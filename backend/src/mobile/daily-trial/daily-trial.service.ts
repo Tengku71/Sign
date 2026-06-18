@@ -26,7 +26,7 @@ export class DailyTrialService {
     });
 
     if (existingTrial) {
-      return this.prisma.dailyTrial.update({
+      await this.prisma.dailyTrial.update({
         where: { id: existingTrial.id },
         data: {
           correct: dto.correct,
@@ -35,6 +35,14 @@ export class DailyTrialService {
           labels: dto.labels,
         },
       });
+
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      return {
+        streak: user!.streak,
+        bestStreak: user!.bestStreak,
+        completedToday: true,
+        streakStatus: 'completed',
+      };
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -59,7 +67,9 @@ export class DailyTrialService {
       else newStreak = 1;
     }
 
-    const [trial] = await this.prisma.$transaction([
+    const newBestStreak = Math.max(newStreak, user.bestStreak);
+
+    await this.prisma.$transaction([
       this.prisma.dailyTrial.create({
         data: {
           userId,
@@ -74,12 +84,17 @@ export class DailyTrialService {
         where: { id: userId },
         data: {
           streak: newStreak,
-          bestStreak: Math.max(newStreak, user.bestStreak),
+          bestStreak: newBestStreak,
         },
       }),
     ]);
 
-    return trial;
+    return {
+      streak: newStreak,
+      bestStreak: newBestStreak,
+      completedToday: true,
+      streakStatus: 'completed',
+    };
   }
 
   async getStreakStatus(userId: number) {
