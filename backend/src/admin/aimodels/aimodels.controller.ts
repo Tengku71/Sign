@@ -94,8 +94,8 @@ export class AimodelController {
       data: {
         name: body.name,
         version: body.version,
-        modelPath: `/uploads/${modelFile!.filename}`,
-        labelsPath: labelsFile ? `/uploads/${labelsFile.filename}` : null,
+        modelPath: `uploads/${modelFile!.filename}`,
+        labelsPath: labelsFile ? `uploads/${labelsFile.filename}` : null,
         isActive: body.isActive === 'true',
       },
     });
