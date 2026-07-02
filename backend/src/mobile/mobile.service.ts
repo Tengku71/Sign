@@ -178,7 +178,7 @@ export class MobileService {
     });
 
     if (!user) {
-      throw new BadRequestException('Pengguna tidak ditemukan');
+      throw new BadRequestException('User not found');
     }
 
     const validOtp = await this.validateOtp(
@@ -188,18 +188,24 @@ export class MobileService {
     );
 
     if (!validOtp) {
-      throw new BadRequestException('OTP tidak valid atau kedaluwarsa');
+      throw new BadRequestException('Invalid or expired OTP');
     }
 
     await this.markOtpAsUsed(validOtp.id);
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+      },
     });
 
-    return { success: true, message: 'Kata sandi berhasil diatur ulang' };
+    return {
+      success: true,
+      message: 'Password reset successfully',
+    };
   }
 
   private async saveOtp(email: string, code: string, type: string) {
