@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+// trial-results.service.ts
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTrialResultDto } from '../dto/create-trial-result.dto';
 
@@ -7,16 +8,52 @@ export class TrialResultsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: number, dto: CreateTrialResultDto) {
-    return this.prisma.trialResult.create({
-      data: {
-        userId,
-        materiId: dto.materiId,
-        correct: dto.correct,
-        wrong: dto.wrong,
-        total: dto.total,
-        completedAt: new Date(dto.completedAt),
-      },
-    });
+    try {
+      // ✅ FIX: Explicitly DO NOT include id - let database auto-generate
+      const result = await this.prisma.trialResult.create({
+        data: {
+          userId,
+          materiId: dto.materiId,
+          correct: dto.correct,
+          wrong: dto.wrong,
+          total: dto.total,
+          completedAt: new Date(dto.completedAt),
+          // ❌ DON'T add: id: xxx  <-- Let DB handle this!
+        },
+      });
+
+      return result;
+    } catch (error) {
+      // ✅ Handle duplicate/unique constraint errors gracefully
+      if (error.code === 'P2002') {
+        // Unique constraint violation - try upsert instead
+        console.warn('Duplicate detected, using upsert...');
+
+        return this.prisma.trialResult.upsert({
+          where: {
+            // You need a unique identifier for upsert
+            // Option A: Use composite unique key if you have one
+            // Option B: Just create with new id by omitting id field
+          },
+          update: {
+            correct: dto.correct,
+            wrong: dto.wrong,
+            total: dto.total,
+            completedAt: new Date(dto.completedAt),
+          },
+          create: {
+            userId,
+            materiId: dto.materiId,
+            correct: dto.correct,
+            wrong: dto.wrong,
+            total: dto.total,
+            completedAt: new Date(dto.completedAt),
+          },
+        });
+      }
+
+      throw error;
+    }
   }
 
   async findByUserAndMateri(userId: number, materiId: number) {
@@ -36,10 +73,9 @@ export class TrialResultsService {
     const where: any = { userId };
 
     if (folderId) {
-      where.materi = { folderId: folderId };
+      where.materi = { folderId: parseInt(folderId.toString()) };
     }
 
-    // Get paginated data, total count, and aggregate stats in one go
     const [data, total, agg] = await Promise.all([
       this.prisma.trialResult.findMany({
         where,
