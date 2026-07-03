@@ -68,7 +68,7 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail({
-        from: `"Your App Name" <${fromEmail}>`,
+        from: `"Sign" <${fromEmail}>`,
         to: email,
         subject,
         html,
