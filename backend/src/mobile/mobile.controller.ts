@@ -21,6 +21,7 @@ import { ChangePasswordDto } from './dto/change-passwords.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { GoogleLoginDto, GoogleRegisterDto } from './dto/google-auth.dto';
 
 @Controller('mobile')
 export class MobileController {
@@ -39,6 +40,16 @@ export class MobileController {
   @Post('resend-otp')
   async resendOtp(@Body('email') email: string) {
     return this.mobileService.resendOtp(email);
+  }
+
+  @Post('google-register')
+  async googleRegister(@Body() dto: GoogleRegisterDto) {
+    return this.mobileService.googleRegister(dto);
+  }
+
+  @Post('google-login')
+  async googleLogin(@Body() dto: GoogleLoginDto) {
+    return this.mobileService.googleLogin(dto);
   }
 
   @Post('login')

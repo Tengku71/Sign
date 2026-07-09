@@ -16,14 +16,120 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { EmailService } from './email/email.service';
+import { OAuth2Client } from 'google-auth-library';
+import { GoogleLoginDto, GoogleRegisterDto } from './dto/google-auth.dto';
 
 @Injectable()
 export class MobileService {
+  private googleClient: OAuth2Client;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
-  ) {}
+  ) {
+    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
+
+  private async verifyGoogleToken(token: string) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      if (!payload) throw new Error('Invalid payload');
+      return payload;
+    } catch (error) {
+      try {
+        const response = await fetch(
+          `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`,
+        );
+        if (!response.ok) throw new Error('Token invalid');
+        const data = await response.json();
+        return {
+          email: data.email,
+          name: data.name,
+          picture: data.picture,
+          sub: data.sub,
+        };
+      } catch (err) {
+        throw new UnauthorizedException(
+          'Token Google tidak valid atau kedaluwarsa',
+        );
+      }
+    }
+  }
+
+  async googleRegister(dto: GoogleRegisterDto) {
+    const payload = await this.verifyGoogleToken(dto.idToken);
+
+    if (payload.email.toLowerCase() !== dto.email.toLowerCase()) {
+      throw new UnauthorizedException(
+        'Email token tidak cocok dengan data yang diberikan',
+      );
+    }
+
+    const exists = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (exists) {
+      throw new ConflictException('Email sudah terdaftar');
+    }
+
+    await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        name: dto.name,
+        password: null,
+        isVerified: false,
+        isGoogleUser: true,
+        image: payload.picture || null,
+      },
+    });
+
+    const otp = this.generateOtp();
+    await this.saveOtp(dto.email, otp, 'verification');
+
+    try {
+      await this.emailService.sendOtpEmail(dto.email, otp, 'verification');
+    } catch (error) {
+      console.error('Gagal mengirim email OTP:', error);
+    }
+
+    return {
+      success: true,
+      message:
+        'Pendaftaran Google berhasil. Silakan periksa email Anda untuk verifikasi OTP.',
+    };
+  }
+
+  async googleLogin(dto: GoogleLoginDto) {
+    const payload = await this.verifyGoogleToken(dto.idToken);
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: payload.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Akun tidak ditemukan. Silakan daftar terlebih dahulu.',
+      );
+    }
+
+    if (!user.isVerified) {
+      throw new UnauthorizedException(
+        'Harap verifikasi email Anda terlebih dahulu. Periksa kotak masuk email Anda untuk mendapatkan OTP.',
+      );
+    }
+
+    const jwtPayload = { sub: user.id, email: user.email };
+    const access_token = this.jwtService.sign(jwtPayload);
+
+    const { password, ...userData } = user;
+    return { access_token, user: userData };
+  }
 
   private generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -132,6 +238,12 @@ export class MobileService {
 
     if (!user) throw new UnauthorizedException('Kredensial tidak valid');
 
+    if (user.isGoogleUser || !user.password) {
+      throw new UnauthorizedException(
+        'Akun ini terdaftar menggunakan Google. Silakan login dengan tombol Google.',
+      );
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid)
       throw new UnauthorizedException('Kredensial tidak valid');
@@ -148,7 +260,6 @@ export class MobileService {
     const { password, ...userData } = user;
     return { access_token, user: userData };
   }
-
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -285,16 +396,29 @@ export class MobileService {
       where: { id: userId },
     });
 
-    if (!user) throw new UnauthorizedException('Pengguna tidak ditemukan');
+    if (!user) {
+      throw new UnauthorizedException('Pengguna tidak ditemukan');
+    }
+
+    if (!user.password) {
+      throw new BadRequestException(
+        'Akun ini tidak memiliki kata sandi. Silakan login menggunakan Google/OAuth.',
+      );
+    }
 
     const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
-    if (!isMatch) throw new BadRequestException('Kata sandi saat ini salah');
+
+    if (!isMatch) {
+      throw new BadRequestException('Kata sandi saat ini salah');
+    }
 
     const hashed = await bcrypt.hash(dto.newPassword, 10);
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: { password: hashed },
+      data: {
+        password: hashed,
+      },
     });
   }
 }

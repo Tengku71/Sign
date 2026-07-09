@@ -15,17 +15,17 @@ model User {
   id           Int           @id @default(autoincrement())
   email        String        @unique
   name         String
-  password     String
+  password     String?     
   image        String?
   streak       Int           @default(0)
   bestStreak   Int           @default(0)
   isVerified   Boolean       @default(false)
+  isGoogleUser Boolean       @default(false)
   createdAt    DateTime      @default(now())
   trialResults TrialResult[]
   dailyTrials  DailyTrial[]
   otps         Otp[]
 }
-
 model Otp {
   id        Int      @id @default(autoincrement())
   email     String
