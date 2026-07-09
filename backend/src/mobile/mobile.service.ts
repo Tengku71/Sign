@@ -118,6 +118,12 @@ export class MobileService {
       );
     }
 
+    if (!user.isGoogleUser) {
+      throw new UnauthorizedException(
+        'Akun ini terdaftar menggunakan email & kata sandi. Silakan login menggunakan kata sandi Anda.',
+      );
+    }
+
     if (!user.isVerified) {
       throw new UnauthorizedException(
         'Harap verifikasi email Anda terlebih dahulu. Periksa kotak masuk email Anda untuk mendapatkan OTP.',
