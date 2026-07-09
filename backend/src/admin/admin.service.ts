@@ -75,8 +75,6 @@ export class AdminService {
         id: true,
         email: true,
         name: true,
-        scores: true,
-        level: true,
         isVerified: true,
         createdAt: true,
       },

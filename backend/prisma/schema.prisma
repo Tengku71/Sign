@@ -16,8 +16,6 @@ model User {
   email        String        @unique
   name         String
   password     String
-  scores       Int           @default(0)
-  level        Int           @default(1)
   image        String?
   streak       Int           @default(0)
   bestStreak   Int           @default(0)
