@@ -6,8 +6,27 @@ import { join } from 'path';
 import session from 'express-session';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    cors: false,
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableCors({
+    origin: [
+      'http://192.168.18.21:3001',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'https://sign.tengkudimas.my.id',
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Set-Cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+    next();
   });
   app.use(
     session({
@@ -17,24 +36,19 @@ async function bootstrap() {
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.tengkudimas.my.id',
       },
     }),
   );
-  app.enableCors({
-    origin: [
-      'http://192.168.18.21:3001',
-      'http://localhost:3001',
-      'http://localhost:5173',
-      'https://sign.tengkudimas.my.id',
-      'https://api.tengkudimas.my.id',
-    ],
-    credentials: true,
-  });
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
   });
+
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();
