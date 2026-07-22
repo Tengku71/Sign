@@ -7,6 +7,9 @@ import session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  const isProd = process.env.NODE_ENV === 'production';
+
   app.enableCors({
     origin: [
       'http://192.168.18.21:3001',
@@ -22,12 +25,8 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-  app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') {
-      return res.status(204).end();
-    }
-    next();
-  });
+  app.set('trust proxy', 1);
+
   app.use(
     session({
       secret: process.env.SESSION_SECRET ?? 'fallback-secret',
@@ -36,9 +35,9 @@ async function bootstrap() {
       cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        domain: '.tengkudimas.my.id',
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        domain: isProd ? '.tengkudimas.my.id' : undefined,
       },
     }),
   );
