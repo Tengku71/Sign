@@ -34,7 +34,7 @@
 </script>
 
 {#if loading}
-  <Skeleton />
+  <!-- <Skeleton /> -->
 {:else if isLoggedIn}
   <div class="h-screen flex overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950">
     <SideNav {data} />

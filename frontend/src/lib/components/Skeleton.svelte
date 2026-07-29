@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { page } from "$app/state";
   import { logoutAdmin } from "$lib/admin/logout";
   import { LoaderCircle, LibraryBig, ClipboardClock, UserRoundPen, LogOut } from "@lucide/svelte";
@@ -59,4 +59,4 @@
 
     <div class="mt-8 bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center text-slate-400"></div>
   </div>
-</div>
+</div> -->
