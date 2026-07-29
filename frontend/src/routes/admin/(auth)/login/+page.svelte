@@ -25,7 +25,7 @@
 
     const res = await loginAdmin({ email, password });
     if (res.success) {
-      goto("/admin/dashboard");
+      goto("/admin/materi");
     } else {
       error = res.message || "Login failed";
     }

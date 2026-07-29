@@ -6,7 +6,7 @@
   const { data } = $props();
 
   const navItems = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: LayoutPanelLeft },
+    // { href: "/admin/dashboard", label: "Dashboard", icon: LayoutPanelLeft },
     { href: "/admin/materi", label: "Materi", icon: LibraryBig },
     // { href: "/admin/kuis", label: "Kuis Waktu", icon: ClipboardClock },
     { href: "/admin/user-akun", label: "User Akun", icon: UserRoundPen },
