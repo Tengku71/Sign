@@ -16,8 +16,8 @@
   let email = $state("");
   let name = $state("");
   let password = $state("");
-  let level = $state(1);
-  let scores = $state(0);
+  // let level = $state(1);
+  // let scores = $state(0);
   let isVerified = $state(false);
 
   onMount(async () => {
@@ -25,8 +25,8 @@
     if (res.success && res.data) {
       email = res.data.email;
       name = res.data.name;
-      level = res.data.level;
-      scores = res.data.scores;
+      // level = res.data.level;
+      // // scores = res.data.scores;
       isVerified = res.data.isVerified;
     } else {
       error = "Failed to load user.";
@@ -41,7 +41,8 @@
     successMsg = "";
     saving = true;
 
-    const payload: any = { email, name, level, scores, isVerified };
+    // const payload: any = { email, name, level, scores, isVerified };
+    const payload: any = { email, name, isVerified };
     if (password.length >= 8) {
       payload.password = password;
     }
@@ -85,16 +86,16 @@
         </div>
 
         <!-- Level -->
-        <div>
+        <!-- <div>
           <label for="level" class="block text-sm font-medium text-slate-300 mb-1">Level</label>
           <input type="number" bind:value={level} required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+        </div> -->
 
         <!-- Scores -->
-        <div>
+        <!-- <div>
           <label for="scores" class="block text-sm font-medium text-slate-300 mb-1">Scores</label>
           <input type="number" bind:value={scores} required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+        </div> -->
 
         <!-- Verified Toggle -->
         <div class="flex items-center">
